@@ -11,14 +11,15 @@ var insertHelper = function ( table, obj, callback ) {
 };
 
 var selectHelper = function ( table, columns, field, args, callback ) {
+  var sql = "SELECT ?? FROM ??" // WHERE ?? = ? ORDER BY ??;
   columns = columns || "*";
   field = field || "id";
-  args = ( args ? args : '' );
+  //args = ( args ? args : '' );
+  sql = args ? sql + " WHERE ?? = ?" : sql;
   // var where = ( args ? "WHERE " + field + " = ?" : "" );
-  var sql = "SELECT ?? FROM ?? WHERE ?? = ? ORDER BY ??";
   var inserts = ( args ? [columns, table, field, args] : [columns, table] );
   sql = mysql.format(sql, inserts);
-
+  console.log(sql);
   var select = {
     sql: sql,
     timeout: 20000
