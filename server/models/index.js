@@ -15,7 +15,7 @@ var selectHelper = function ( table, columns, field, args, callback ) {
   field = field || "id";
   args = ( args ? args : '' );
   // var where = ( args ? "WHERE " + field + " = ?" : "" );
-  var sql = "SELECT ?? FROM ?? WHERE ?? = ?";
+  var sql = "SELECT ?? FROM ?? WHERE ?? = ? ORDER BY ??";
   var inserts = ( args ? [columns, table, field, args] : [columns, table] );
   sql = mysql.format(sql, inserts);
 
