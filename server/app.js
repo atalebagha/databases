@@ -1,4 +1,5 @@
 var express = require('express');
+var cors = require('cors');
 var db = require('./db');
 
 // Middleware
@@ -11,9 +12,13 @@ var router = require('./routes.js');
 var app = express();
 module.exports.app = app;
 
+
 // Set what we are listening on.
 app.set("port", 3000);
-app.set("host", "127.0.0.1")
+// app.set("host", "127.0.0.1")
+
+//enable all cors requests - we want to get hacked!
+app.use(cors());
 
 // Logging and parsing
 app.use(morgan('dev'));
