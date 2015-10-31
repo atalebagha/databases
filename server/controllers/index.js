@@ -9,12 +9,21 @@ module.exports = {
     get: function (req, res) {
       models.messages.get('text', '', '', function (err, result) {
         if (err) throw err;
-        console.log(result)
+        console.log(result);
         res.json(result);
       });
     }, // a function which handles a get request for all messages
-    post: function (req, res) {} // a function which handles posting a message to the database
-    },
+
+
+    post: function (req, res) {
+      // phony data placed below.  data will be received as property of req
+      models.messages.post('Hi there!', 'Lobby', 'Abdul', function (err, result) {
+        if (err) throw err;
+        res.status(201);
+        res.end("Success");
+      });
+    } // a function which handles posting a message to the database
+  },
 
   users: {
     // Ditto as above
