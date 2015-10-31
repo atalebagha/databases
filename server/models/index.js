@@ -1,11 +1,12 @@
 var db = require('../db');
 var mysql = require('mysql');
+var _ = require('lodash');
 
 var insertHelper = function ( table, obj, callback ) {
-  Object.keys(obj).forEach(function(key) {
-    obj[key] = db.escape(obj[key]);
+  _.each(obj, function(val) {
+    val = db.escape(val);
   });
-  var sql = "INSERT INTO " + table + " SET ?";
+  var sql = "INSERT INTO " + table + " SET ??";
 
   db.query(sql, obj, callback);
 };
@@ -14,18 +15,19 @@ var selectHelper = function ( table, columns, field, args, callback ) {
   var sql = "SELECT ?? FROM ??" // WHERE ?? = ? ORDER BY ??;
   columns = columns || "*";
   field = field || "id";
-  //args = ( args ? args : '' );
   sql = args ? sql + " WHERE ?? = ?" : sql;
-  // var where = ( args ? "WHERE " + field + " = ?" : "" );
   var inserts = ( args ? [columns, table, field, args] : [columns, table] );
   sql = mysql.format(sql, inserts);
   console.log(sql);
+
   var select = {
     sql: sql,
     timeout: 20000
   };
   db.query(select, callback);
 };
+
+
 
 module.exports = {
   messages: {
@@ -34,13 +36,29 @@ module.exports = {
     },
     post: function (message, roomname, username, callback ) { // maybe we can pull user_id and
       var obj = {
-        room_id: selectHelper('rooms', 'id', 'roomname', db.escape(roomname), function (err, result) {
-          if (err) throw err;
+        'room_id': selectHelper('rooms', 'id', 'roomname', db.escape(roomname), function (err, result) {
+          if (err) throw err;// if first error, it will attempt to add user name below
+          if (!result) {
+            console.log("creating Roomname");
+            exports.rooms.post( roomname, function (err, result) {
+              if (err) throw err;
+              return result.insertId; // must add insertId to return ID only
+            });
+          }
+           //  // add error handler to add room in case it doesn't exist
           return result;
         }),
-        message: db.escape(username),
-        user_id: selectHelper('users', 'id', 'username', db.escape(username), function (err, result) {
-          if (err) throw err;
+
+        text: message,
+
+        'user_id': selectHelper('users', 'id', 'username', db.escape(username), function (err, result) {
+          if (err) { // if first error, it will attempt to add user name below
+            console.log("creating username");
+            exports.users.post( username, function (err, result) {
+              if (err) throw err;
+              return result.insertId; // must add insertId to return id only
+            });
+          } //
           return result;
         }) };
       insertHelper( 'messages', obj , callback );
@@ -53,7 +71,7 @@ module.exports = {
       selectHelper('users', columns, field, args, callback);
     },
     post: function ( username, callback ) {
-      var obj = { username: db.escape(username) };
+      var obj = { username: username };
       insertHelper( 'users', obj , callback );
     }
   },
@@ -65,7 +83,7 @@ module.exports = {
       selectHelper('rooms', columns, field, args, callback);
     },
     post: function ( roomname, callback ) {
-      var obj = { roomname: db.escape(roomname) };
+      var obj = { roomname: roomname };
       insertHelper( 'rooms', obj , callback );
     }
   }
